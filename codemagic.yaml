@@ -1,0 +1,55 @@
+workflows:
+  ios-unsigned:
+    name: Verness iPhone IPA (unsigned)
+    max_build_duration: 45
+    instance_type: mac_mini_m2
+    environment:
+      xcode: latest
+    scripts:
+      - &prepare
+        name: Prepare and validate Verness
+        script: |
+          set -euo pipefail
+          if [ -d "$CM_BUILD_DIR/ios/verness.xcodeproj" ]; then
+            cd "$CM_BUILD_DIR/ios"
+          else
+            cd "$CM_BUILD_DIR"
+          fi
+          printf 'VERNESS_IOS_ROOT=%s\n' "$PWD" >> "$CM_ENV"
+          python3 scripts/generate_project.py
+          python3 scripts/validate_project.py
+          python3 -m unittest discover -s Server -p 'test_*.py' -v
+          python3 -m unittest discover -s scripts -p 'test_*.py' -v
+      - name: Build iPhone archive and package unsigned IPA
+        script: |
+          set -euo pipefail
+          cd "$VERNESS_IOS_ROOT"
+          python3 scripts/codemagic_build.py unsigned
+    artifacts:
+      - "**/build/ios/ipa/*.ipa"
+      - "**/build/ios/ipa/*.sha256"
+      - "**/build/ios/ipa/*-build-info.json"
+      - "**/build/ios/logs/*.log"
+
+  ios-signed:
+    name: Verness iPhone IPA (Ad Hoc signed)
+    max_build_duration: 45
+    instance_type: mac_mini_m2
+    environment:
+      xcode: latest
+      ios_signing:
+        distribution_type: ad_hoc
+        bundle_identifier: app.verness.ios
+    scripts:
+      - *prepare
+      - name: Build and export signed IPA with Island
+        script: |
+          set -euo pipefail
+          cd "$VERNESS_IOS_ROOT"
+          python3 scripts/codemagic_build.py signed
+    artifacts:
+      - "**/build/ios/ipa/*.ipa"
+      - "**/build/ios/ipa/*.sha256"
+      - "**/build/ios/ipa/*-build-info.json"
+      - "**/build/ios/logs/*.log"
+      - /tmp/xcodebuild_logs/*.log

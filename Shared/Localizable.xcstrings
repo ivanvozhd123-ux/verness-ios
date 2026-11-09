@@ -1,0 +1,9 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "Play / Pause": { "localizations": { "ru": { "stringUnit": { "state": "translated", "value": "Воспроизвести / пауза" } } } },
+    "Next track": { "localizations": { "ru": { "stringUnit": { "state": "translated", "value": "Следующий трек" } } } },
+    "Previous track": { "localizations": { "ru": { "stringUnit": { "state": "translated", "value": "Предыдущий трек" } } } }
+  },
+  "version": "1.0"
+}

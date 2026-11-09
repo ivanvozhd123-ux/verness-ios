@@ -3,9 +3,48 @@
 Нативный SwiftUI-проект для iOS 17+. Исходники приложения, расширения Island,
 XCTest и музыкального сервера находятся в этой папке. Windows и Android не меняются.
 
-**На Windows нельзя собрать или подписать IPA:** необходимы macOS, Xcode и iOS SDK.
-Этот проект подготовлен на Windows и здесь не проходил компиляцию Apple SDK.
+**С Windows IPA можно собрать через облачный Mac в Codemagic.** Локальная нативная
+сборка требует macOS, Xcode и iOS SDK. Этот проект подготовлен на Windows
+и здесь не проходил компиляцию Apple SDK.
 Проверки, которые удалось выполнить, указаны в `VALIDATION.md`.
+
+## Сборка через Codemagic с Windows
+
+В корне репозитория должны находиться `codemagic.yaml`, `verness.xcodeproj`,
+`App/`, `Island/`, `Shared/`, `scripts/`, `Server/` и `Tests/`.
+Конфигурация также поддерживает весь Windows-репозиторий с проектом в `ios/`,
+если скопировать `ios/codemagic.yaml` в его корень.
+
+1. В [Codemagic](https://codemagic.io/apps) подключи репозиторий
+   `https://github.com/ivanvozhd123-ux/verness-ios`.
+2. Выбери конфигурацию `codemagic.yaml`, ветку `main` и workflow **ios-unsigned**.
+3. Запусти сборку. Облачный Mac проверит проект и Python-тесты, затем запустит
+   Release archive для `iphoneos` (настоящего устройства, не симулятора).
+4. После успешной сборки скачай `verness-ios-0.1.2-unsigned.ipa` из Artifacts.
+   Рядом будут SHA-256, сведения о сборке и логи.
+
+`ios-unsigned` не требует Apple-сертификатов для компиляции. IPA содержит
+приложение и Island extension, но **его нужно подписать перед установкой**.
+Возможность установки и сохранение расширения зависят от способа подписи.
+Пока облачная сборка не запущена и не прошла, готового IPA нет.
+
+Для подписанного **Ad Hoc IPA** выбери workflow **ios-signed**. Предварительно
+в Codemagic → Team settings → Code signing identities добавь Apple Distribution
+сертификат с приватным ключом и два Ad Hoc provisioning profile:
+
+- `app.verness.ios` — приложение;
+- `app.verness.ios.island` — расширение.
+
+Оба профиля должны относиться к одной Apple Team, подходить сертификату и
+содержать UDID нужного iPhone. Codemagic применит профили к обоим targets.
+Bundle ID в проекте и в `environment.ios_signing.bundle_identifier` должны
+совпадать с зарегистрированными идентификаторами. При изменении ID измени
+также `scripts/generate_project.py`, иначе генератор восстановит старые значения.
+Ad Hoc IPA устанавливается только на устройства из профилей. Workflow ничего
+не публикует в App Store и не отправляет письма.
+
+Официальные инструкции: [native iOS](https://docs.codemagic.io/yaml-quick-start/building-a-native-ios-app/),
+[signing приложения и extensions](https://docs.codemagic.io/yaml-code-signing/signing-ios/).
 
 ## Открыть на Mac
 
