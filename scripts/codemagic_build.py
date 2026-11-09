@@ -95,7 +95,7 @@ def main():
         app = archive / "Products/Applications/verness.app"
         for bundle in (app, app / "PlugIns/VernessIsland.appex"):
             info = device_bundle(bundle)
-            run(["xcrun", "lipo", "-verify_arch", "arm64", str(bundle / info["CFBundleExecutable"])], bundle.stem + "-architecture")
+            run(["xcrun", "lipo", str(bundle / info["CFBundleExecutable"]), "-verify_arch", "arm64"], bundle.stem + "-architecture")
         with (app / "Info.plist").open("rb") as file:
             version = plistlib.load(file)["CFBundleShortVersionString"]
         ipa = OUTPUT / f"verness-ios-{version}-unsigned.ipa"
